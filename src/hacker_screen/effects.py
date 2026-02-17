@@ -28,6 +28,7 @@ from hacker_screen.data import (
     NETWORK_PROTOCOLS,
     PORT_NUMBERS,
     SUCCESS_MESSAGES,
+    SYSTEM_INFO,
     SYSTEM_PROCESSES,
     TARGET_SERVERS,
     WELCOME_BANNER,
@@ -400,17 +401,27 @@ def show_system_info(console: Console) -> None:
     table.add_column("Key", style="bold cyan")
     table.add_column("Value", style="green")
 
+    si = SYSTEM_INFO
     info = [
         ("Hostname", target),
-        ("OS", random.choice(["Ubuntu 22.04", "RHEL 9", "Debian 12", "Arch"])),
+        ("OS", random.choice(si["os"])),
         ("Kernel", f"6.{random.randint(1, 8)}.{random.randint(0, 15)}-generic"),
-        ("CPU", random.choice(["Intel Xeon E5-2690", "AMD EPYC 7742", "ARM Neoverse"])),
-        ("RAM", f"{random.choice([16, 32, 64, 128, 256])} GB"),
-        ("Uptime", f"{random.randint(1, 365)} days"),
+        ("CPU", random.choice(si["cpu"])),
+        ("GPU", random.choice(si["gpu"])),
+        ("RAM", f"{random.choice(si['ram_gb'])} GB"),
+        ("Disk", random.choice(si["disk"])),
+        ("Network", random.choice(si["network_interface"])),
+        ("Uptime", f"{random.randint(1, 365)} days, {random.randint(0, 23)}h"),
         ("IP", get_random_ip()),
         ("MAC", get_random_mac()),
-        ("Open Ports", str(random.randint(3, 12))),
-        ("Active Users", str(random.randint(1, 5))),
+        ("Timezone", random.choice(si["timezone"])),
+        ("Locale", random.choice(si["locale"])),
+        ("Shell", random.choice(si["shell"])),
+        ("Virt", random.choice(si["virtualization"])),
+        ("Security", random.choice(si["selinux_status"])),
+        ("Last Patch", random.choice(si["last_patch"])),
+        ("Open Ports", str(random.randint(3, 24))),
+        ("Active Users", str(random.randint(1, 12))),
     ]
 
     with Live(table, console=console, refresh_per_second=6) as live:
