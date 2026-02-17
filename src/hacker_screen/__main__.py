@@ -19,6 +19,14 @@ def main() -> None:
     Clears the terminal on start for a clean takeover effect.
     Catches KeyboardInterrupt for a clean exit message.
     """
+    # Windows CI/console fix: force UTF-8 output if possible
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+            sys.stderr.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
+
     console = Console()
 
     # check terminal size

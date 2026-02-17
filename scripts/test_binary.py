@@ -23,10 +23,12 @@ def test_binary(binary_path: str, timeout: int = 15) -> None:
         # We expect it to run indefinitely (matrix rain), so a TimeoutExpired is a success.
         # A quick return (crash) is a failure.
 
-        # Force UTF-8 encoding for captured output (especially on Windows CI)
+        # Force UTF-8 encoding and ANSI support to avoid legacy Windows console issues
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
         env["PYTHONUTF8"] = "1"
+        env["TERM"] = "xterm-256color"  # trick Rich into using ANSI
+        env["ANSICON"] = "1"  # another trick for ANSI support
 
         proc = subprocess.run(
             [str(path)],
