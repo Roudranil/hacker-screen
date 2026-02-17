@@ -1,0 +1,17 @@
+[
+    "sshd",
+    "nginx",
+    "postgres",
+    "kernel_worker",
+    "systemd",
+    "cron",
+    "docker",
+    "containerd",
+    "kube-proxy",
+    "redis-server",
+    "mysqld",
+    "apache2",
+    "openvpn",
+    "tor",
+    "fail2ban"
+]

@@ -1,0 +1,22 @@
+[
+    "/etc/shadow",
+    "/etc/passwd",
+    "/var/lib/mysql/users.db",
+    "/root/.ssh/id_rsa",
+    "/home/admin/.bash_history",
+    "/var/log/auth.log",
+    "/opt/secrets/vault.enc",
+    "/tmp/.hidden/keylog.dat",
+    "/srv/classified/top_secret.gpg",
+    "/usr/local/bin/backdoor.sh",
+    "C:\\Windows\\System32\\config\\SAM",
+    "C:\\Users\\Admin\\Documents\\passwords.xlsx",
+    "C:\\ProgramData\\ssh\\ssh_host_rsa_key",
+    "/proc/self/mem",
+    "/dev/sda1",
+    "/sys/kernel/security/apparmor",
+    "/var/spool/cron/crontabs/root",
+    "/etc/ssl/private/server.key",
+    "/opt/oracle/product/db/wallet.p12",
+    "/backup/full_dump_2024.sql.gz"
+]

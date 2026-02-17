@@ -1,0 +1,17 @@
+[
+    "AES-256-GCM",
+    "RSA-4096",
+    "ChaCha20-Poly1305",
+    "Blowfish-CBC",
+    "Twofish-256",
+    "3DES-EDE",
+    "Serpent-256",
+    "Camellia-256",
+    "CAST-256",
+    "IDEA-128",
+    "RC4-256",
+    "Salsa20",
+    "XTEA",
+    "SHA-512",
+    "bcrypt(cost=14)"
+]

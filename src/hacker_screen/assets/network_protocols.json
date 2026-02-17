@@ -1,0 +1,17 @@
+[
+    "SSH",
+    "TLS 1.3",
+    "WireGuard",
+    "Tor",
+    "I2P",
+    "TCP",
+    "UDP",
+    "ICMP",
+    "HTTP/2",
+    "DNS",
+    "SMTP",
+    "FTP",
+    "SNMP",
+    "RDP",
+    "SMB"
+]
