@@ -176,7 +176,8 @@ def run_cracking_phase(console: Console, phase_num: int = 3) -> None:
     _phase_header(console, phase_num, "CRACKING")
 
     # sometimes lead with brute force
-    if random.random() < 0.4:
+    led_with_brute = random.random() < 0.4
+    if led_with_brute:
         show_encryption_crack(console)
         time.sleep(0.3)
 
@@ -186,8 +187,8 @@ def run_cracking_phase(console: Console, phase_num: int = 3) -> None:
         show_password_crack(console, target)
         time.sleep(0.3)
 
-    # brute force if we didn't lead with it
-    if random.random() < 0.6:
+    # always brute force if we didn't lead with it
+    if not led_with_brute:
         show_encryption_crack(console)
         time.sleep(0.3)
 

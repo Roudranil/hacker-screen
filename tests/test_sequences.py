@@ -184,8 +184,8 @@ class TestRunCrackingPhase:
         mock_console: MagicMock,
     ) -> None:
         sequences.run_cracking_phase(mock_console)
-        # at least one encryption crack (lead or follow)
-        assert mock_encrypt.call_count >= 1
+        # exactly one encryption crack (either leads or follows)
+        assert mock_encrypt.call_count == 1
 
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
