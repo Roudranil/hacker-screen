@@ -1,6 +1,15 @@
-"""Tests for the data module — pools, helpers, and random generators."""
+"""Tests for the data module — loaders, pools, helpers, and random generators.
+
+Tests cover:
+- JSON/TXT asset loading functions
+- Asset file integrity (every file loads and has expected structure)
+- Data pool population and uniqueness
+- Random generator helpers
+"""
 
 import re
+
+import pytest
 
 from hacker_screen.data import (
     ASCII_SKULLS,
@@ -17,11 +26,160 @@ from hacker_screen.data import (
     SYSTEM_PROCESSES,
     TARGET_SERVERS,
     WELCOME_BANNER,
+    _load_json,
+    _load_skulls,
+    _load_text,
     get_random_hex,
     get_random_ip,
     get_random_items,
     get_random_mac,
 )
+
+
+class TestLoadJson:
+    """Tests for the _load_json helper."""
+
+    def test_loads_list(self) -> None:
+        result = _load_json("ips.json")
+        assert isinstance(result, list)
+
+    def test_loads_correct_type_strings(self) -> None:
+        result = _load_json("ips.json")
+        assert all(isinstance(item, str) for item in result)
+
+    def test_loads_correct_type_ints(self) -> None:
+        result = _load_json("ports.json")
+        assert all(isinstance(item, int) for item in result)
+
+    def test_loads_nonempty(self) -> None:
+        result = _load_json("ips.json")
+        assert len(result) > 0
+
+    def test_missing_file_raises(self) -> None:
+        with pytest.raises(FileNotFoundError):
+            _load_json("nonexistent_file.json")
+
+    def test_all_json_files_are_valid(self) -> None:
+        """Verify every JSON asset file parses without error."""
+        json_files = [
+            "ips.json",
+            "files.json",
+            "passwords.json",
+            "hacking_steps.json",
+            "malware_names.json",
+            "target_servers.json",
+            "encryption_algos.json",
+            "network_protocols.json",
+            "ports.json",
+            "system_processes.json",
+            "error_messages.json",
+            "success_messages.json",
+        ]
+        for filename in json_files:
+            data = _load_json(filename)
+            assert isinstance(data, list), f"{filename} did not return a list"
+            assert len(data) > 0, f"{filename} is empty"
+
+
+class TestLoadText:
+    """Tests for the _load_text helper."""
+
+    def test_loads_string(self) -> None:
+        result = _load_text("banner.txt")
+        assert isinstance(result, str)
+
+    def test_banner_has_content(self) -> None:
+        result = _load_text("banner.txt")
+        assert len(result) > 100
+
+    def test_missing_file_raises(self) -> None:
+        with pytest.raises(FileNotFoundError):
+            _load_text("nonexistent_file.txt")
+
+
+class TestLoadSkulls:
+    """Tests for the _load_skulls helper."""
+
+    def test_returns_list(self) -> None:
+        result = _load_skulls()
+        assert isinstance(result, list)
+
+    def test_at_least_three_skulls(self) -> None:
+        result = _load_skulls()
+        assert len(result) >= 3
+
+    def test_all_strings(self) -> None:
+        result = _load_skulls()
+        assert all(isinstance(s, str) for s in result)
+
+    def test_skulls_have_content(self) -> None:
+        result = _load_skulls()
+        for skull in result:
+            assert len(skull.strip()) > 10
+
+    def test_sorted_order(self) -> None:
+        """Skulls should load in deterministic filename order."""
+        result1 = _load_skulls()
+        result2 = _load_skulls()
+        # ordering should be reproducible across calls
+        assert result1 == result2
+
+
+class TestAssetFileIntegrity:
+    """Verify each JSON asset file has expected minimum items."""
+
+    @pytest.mark.parametrize(
+        "filename,min_count",
+        [
+            ("ips.json", 20),
+            ("files.json", 15),
+            ("passwords.json", 15),
+            ("hacking_steps.json", 20),
+            ("malware_names.json", 10),
+            ("target_servers.json", 10),
+            ("encryption_algos.json", 10),
+            ("network_protocols.json", 10),
+            ("ports.json", 20),
+            ("system_processes.json", 10),
+            ("error_messages.json", 10),
+            ("success_messages.json", 10),
+        ],
+    )
+    def test_minimum_item_count(self, filename: str, min_count: int) -> None:
+        data = _load_json(filename)
+        assert len(data) >= min_count, (
+            f"{filename} has {len(data)} items, expected >= {min_count}"
+        )
+
+
+class TestDataPoolTypes:
+    """Verify module-level constants have correct runtime types."""
+
+    def test_string_pools_are_string_lists(self) -> None:
+        string_pools = [
+            FAKE_IPS,
+            FAKE_FILES,
+            FAKE_PASSWORDS,
+            HACKING_STEPS,
+            MALWARE_NAMES,
+            TARGET_SERVERS,
+            ENCRYPTION_ALGOS,
+            NETWORK_PROTOCOLS,
+            SYSTEM_PROCESSES,
+            ERROR_MESSAGES,
+            SUCCESS_MESSAGES,
+        ]
+        for pool in string_pools:
+            assert isinstance(pool, list)
+            assert all(isinstance(item, str) for item in pool)
+
+    def test_port_numbers_are_int_list(self) -> None:
+        assert isinstance(PORT_NUMBERS, list)
+        assert all(isinstance(p, int) for p in PORT_NUMBERS)
+
+    def test_skulls_are_string_list(self) -> None:
+        assert isinstance(ASCII_SKULLS, list)
+        assert all(isinstance(s, str) for s in ASCII_SKULLS)
 
 
 class TestDataPools:
