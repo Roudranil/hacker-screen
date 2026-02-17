@@ -69,13 +69,14 @@ def _get_rain_char() -> str:
 def _init_colors() -> None:
     """Initialize curses color pairs for the rain gradient."""
     curses.start_color()
-    curses.use_default_colors()
+    with contextlib.suppress(curses.error):
+        curses.use_default_colors()
 
-    # color pair 1: bright green (head)
+    # color pair 1: bright green (head) -> white on default
     curses.init_pair(1, curses.COLOR_WHITE, -1)
-    # color pair 2: green (body)
+    # color pair 2: green (body) -> green on default
     curses.init_pair(2, curses.COLOR_GREEN, -1)
-    # color pair 3: dark green (tail)
+    # color pair 3: dark green (tail) -> green on default
     curses.init_pair(3, curses.COLOR_GREEN, -1)
 
 
@@ -88,7 +89,12 @@ def _draw_rain(stdscr: "curses.window") -> None:
     curses.curs_set(0)  # hide cursor
     stdscr.nodelay(True)  # non-blocking input
     stdscr.timeout(50)  # 50ms refresh
+
     _init_colors()
+
+    # force window background to use default terminal color (transparent)
+    # pair 2 has bg=-1 (default)
+    stdscr.bkgd(" ", curses.color_pair(2))
 
     max_y, max_x = stdscr.getmaxyx()
 
