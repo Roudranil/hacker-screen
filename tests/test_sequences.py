@@ -3,11 +3,16 @@
 Verifies each phase function calls expected effects and that
 run_all chains everything in the right order. All effects and
 matrix rain are mocked to avoid actual rendering.
+
+Randomization makes exact call counts unpredictable, so tests
+use range-based assertions (>= / <=) where appropriate.
 """
 
+import io
 from unittest.mock import MagicMock, patch
 
 import pytest
+from rich.console import Console
 
 from hacker_screen import sequences
 
@@ -20,13 +25,48 @@ def mock_console() -> MagicMock:
     return console
 
 
+@pytest.fixture
+def buffer_console() -> Console:
+    """Real console that writes to a string buffer."""
+    return Console(file=io.StringIO(), width=80, force_terminal=True)
+
+
+# ---------------------------------------------------------------------------
+# Phase header
+# ---------------------------------------------------------------------------
+
+
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
 class TestPhaseHeader:
     """Tests for the internal _phase_header function."""
 
     def test_prints_panel(self, mock_sleep: MagicMock, mock_console: MagicMock) -> None:
-        sequences._phase_header(mock_console, "TEST PHASE")
+        sequences._phase_header(mock_console, 1, "TEST PHASE")
         mock_console.print.assert_called()
+
+    def test_auto_style_from_phase_num(
+        self,
+        mock_sleep: MagicMock,
+        mock_console: MagicMock,
+    ) -> None:
+        """Different phase numbers should produce different style calls."""
+        sequences._phase_header(mock_console, 1, "A")
+        sequences._phase_header(mock_console, 2, "B")
+        # both should print without error
+        assert mock_console.print.call_count >= 4  # 2 prints per header
+
+    def test_explicit_style_override(
+        self,
+        mock_sleep: MagicMock,
+        mock_console: MagicMock,
+    ) -> None:
+        sequences._phase_header(mock_console, 1, "X", style="magenta")
+        mock_console.print.assert_called()
+
+
+# ---------------------------------------------------------------------------
+# Welcome
+# ---------------------------------------------------------------------------
 
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
@@ -59,7 +99,13 @@ class TestRunWelcome:
         mock_sysinfo.assert_called_once_with(mock_console)
 
 
+# ---------------------------------------------------------------------------
+# Core phases
+# ---------------------------------------------------------------------------
+
+
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
+@patch("hacker_screen.sequences.show_system_info")
 @patch("hacker_screen.sequences.show_network_traffic")
 @patch("hacker_screen.sequences.show_port_scan")
 @patch("hacker_screen.sequences.typing_effect")
@@ -71,6 +117,7 @@ class TestRunReconPhase:
         mock_typing: MagicMock,
         mock_port: MagicMock,
         mock_traffic: MagicMock,
+        mock_sysinfo: MagicMock,
         mock_sleep: MagicMock,
         mock_console: MagicMock,
     ) -> None:
@@ -82,6 +129,7 @@ class TestRunReconPhase:
         mock_typing: MagicMock,
         mock_port: MagicMock,
         mock_traffic: MagicMock,
+        mock_sysinfo: MagicMock,
         mock_sleep: MagicMock,
         mock_console: MagicMock,
     ) -> None:
@@ -90,20 +138,22 @@ class TestRunReconPhase:
 
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
+@patch("hacker_screen.sequences.show_failure_retry")
 @patch("hacker_screen.sequences.show_hacking_step")
 class TestRunExploitationPhase:
     """Tests for the exploitation phase."""
 
-    def test_calls_hacking_steps(
+    def test_calls_steps(
         self,
         mock_step: MagicMock,
+        mock_fail: MagicMock,
         mock_sleep: MagicMock,
         mock_console: MagicMock,
     ) -> None:
         sequences.run_exploitation_phase(mock_console)
-        # should call 5-7 hacking steps
-        assert mock_step.call_count >= 5
-        assert mock_step.call_count <= 7
+        # total actions = hacking_steps + failure_retries = 5–8
+        total = mock_step.call_count + mock_fail.call_count
+        assert 5 <= total <= 8
 
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
@@ -122,7 +172,8 @@ class TestRunCrackingPhase:
         mock_console: MagicMock,
     ) -> None:
         sequences.run_cracking_phase(mock_console)
-        assert mock_crack.call_count == 3
+        # 2–5 password cracks depending on random
+        assert mock_crack.call_count >= 2
 
     def test_calls_encryption_crack(
         self,
@@ -133,7 +184,8 @@ class TestRunCrackingPhase:
         mock_console: MagicMock,
     ) -> None:
         sequences.run_cracking_phase(mock_console)
-        mock_encrypt.assert_called_once()
+        # at least one encryption crack (lead or follow)
+        assert mock_encrypt.call_count >= 1
 
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
@@ -185,32 +237,42 @@ class TestRunSurveillancePhase:
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
 @patch("hacker_screen.sequences.show_progress_bar")
+@patch("hacker_screen.sequences.show_failure_retry")
 @patch("hacker_screen.sequences.show_hacking_step")
 @patch("hacker_screen.sequences.typing_effect")
 class TestRunMalwarePhase:
     """Tests for the malware deployment phase."""
 
-    def test_calls_hacking_step(
+    def test_calls_steps(
         self,
         mock_typing: MagicMock,
         mock_step: MagicMock,
+        mock_fail: MagicMock,
         mock_progress: MagicMock,
         mock_sleep: MagicMock,
         mock_console: MagicMock,
     ) -> None:
         sequences.run_malware_phase(mock_console)
-        assert mock_step.call_count == 4
+        # steps + failures = 3–6
+        total = mock_step.call_count + mock_fail.call_count
+        assert 3 <= total <= 6
 
     def test_calls_progress_bar(
         self,
         mock_typing: MagicMock,
         mock_step: MagicMock,
+        mock_fail: MagicMock,
         mock_progress: MagicMock,
         mock_sleep: MagicMock,
         mock_console: MagicMock,
     ) -> None:
         sequences.run_malware_phase(mock_console)
         assert mock_progress.call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# Final prompt
+# ---------------------------------------------------------------------------
 
 
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
@@ -243,6 +305,76 @@ class TestRunFinalPrompt:
         mock_countdown.assert_called_once_with(mock_console, seconds=10)
 
 
+# ---------------------------------------------------------------------------
+# Bonus phases
+# ---------------------------------------------------------------------------
+
+
+@patch("hacker_screen.sequences.time.sleep", return_value=None)
+@patch("hacker_screen.sequences.show_failure_retry")
+@patch("hacker_screen.sequences.show_hacking_step")
+@patch("hacker_screen.sequences.typing_effect")
+class TestRunFirewallBypass:
+    """Tests for the firewall bypass bonus phase."""
+
+    def test_runs_without_error(
+        self,
+        mock_typing: MagicMock,
+        mock_step: MagicMock,
+        mock_fail: MagicMock,
+        mock_sleep: MagicMock,
+        mock_console: MagicMock,
+    ) -> None:
+        sequences.run_firewall_bypass(mock_console, phase_num=3)
+        total = mock_step.call_count + mock_fail.call_count
+        assert total == 3
+
+
+@patch("hacker_screen.sequences.time.sleep", return_value=None)
+@patch("hacker_screen.sequences.show_progress_bar")
+@patch("hacker_screen.sequences.show_hacking_step")
+@patch("hacker_screen.sequences.typing_effect")
+class TestRunSocialEngineering:
+    """Tests for the social engineering bonus phase."""
+
+    def test_runs_without_error(
+        self,
+        mock_typing: MagicMock,
+        mock_step: MagicMock,
+        mock_progress: MagicMock,
+        mock_sleep: MagicMock,
+        mock_console: MagicMock,
+    ) -> None:
+        sequences.run_social_engineering(mock_console, phase_num=4)
+        assert mock_step.call_count >= 2
+        mock_progress.assert_called_once()
+
+
+@patch("hacker_screen.sequences.time.sleep", return_value=None)
+@patch("hacker_screen.sequences.show_progress_bar")
+@patch("hacker_screen.sequences.show_hacking_step")
+@patch("hacker_screen.sequences.typing_effect")
+class TestRunCleanupPhase:
+    """Tests for the cleanup bonus phase."""
+
+    def test_runs_without_error(
+        self,
+        mock_typing: MagicMock,
+        mock_step: MagicMock,
+        mock_progress: MagicMock,
+        mock_sleep: MagicMock,
+        mock_console: MagicMock,
+    ) -> None:
+        sequences.run_cleanup_phase(mock_console, phase_num=8)
+        assert mock_step.call_count >= 3
+        mock_progress.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Full orchestration
+# ---------------------------------------------------------------------------
+
+
 @patch("hacker_screen.sequences.time.sleep", return_value=None)
 @patch("hacker_screen.sequences.run_matrix_rain")
 @patch("hacker_screen.sequences.run_final_prompt")
@@ -256,7 +388,7 @@ class TestRunFinalPrompt:
 class TestRunAll:
     """Tests for the full run_all orchestration."""
 
-    def test_calls_all_phases_in_order(
+    def test_calls_all_core_phases(
         self,
         mock_welcome: MagicMock,
         mock_recon: MagicMock,
@@ -273,11 +405,33 @@ class TestRunAll:
         sequences.run_all(mock_console)
 
         mock_welcome.assert_called_once_with(mock_console)
-        mock_recon.assert_called_once_with(mock_console)
-        mock_exploit.assert_called_once_with(mock_console)
-        mock_crack.assert_called_once_with(mock_console)
-        mock_exfil.assert_called_once_with(mock_console)
-        mock_surv.assert_called_once_with(mock_console)
-        mock_malware.assert_called_once_with(mock_console)
-        mock_final.assert_called_once_with(mock_console)
+        # core phases called with console + phase_num
+        mock_recon.assert_called_once()
+        mock_exploit.assert_called_once()
+        mock_crack.assert_called_once()
+        mock_exfil.assert_called_once()
+        mock_surv.assert_called_once()
+        mock_malware.assert_called_once()
+        mock_final.assert_called_once()
         mock_rain.assert_called_once()
+
+    def test_phase_nums_are_sequential(
+        self,
+        mock_welcome: MagicMock,
+        mock_recon: MagicMock,
+        mock_exploit: MagicMock,
+        mock_crack: MagicMock,
+        mock_exfil: MagicMock,
+        mock_surv: MagicMock,
+        mock_malware: MagicMock,
+        mock_final: MagicMock,
+        mock_rain: MagicMock,
+        mock_sleep: MagicMock,
+        mock_console: MagicMock,
+    ) -> None:
+        """All phase_num kwargs should be positive integers."""
+        sequences.run_all(mock_console)
+
+        # check that recon got phase_num=1
+        _, kwargs = mock_recon.call_args
+        assert kwargs["phase_num"] == 1

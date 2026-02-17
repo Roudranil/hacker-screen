@@ -108,6 +108,12 @@ SUCCESS_MESSAGES: list[str] = _load_json("success_messages.json")
 # system info fields — varied OS, CPU, GPU, RAM, disk, etc.
 SYSTEM_INFO: dict[str, list] = _load_json("system_info.json")
 
+# varied typing messages for each phase
+PHASE_MESSAGES: dict[str, list[str]] = _load_json("phase_messages.json")
+
+# signal profiles for surveillance (label pairs + frequencies)
+SIGNAL_PROFILES: list[dict] = _load_json("signal_profiles.json")
+
 # small skull ascii art for dramatic moments
 ASCII_SKULLS: list[str] = _load_skulls()
 

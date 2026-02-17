@@ -249,20 +249,67 @@ def show_signal_graph(console: Console, label: str = "SIGNAL") -> None:
             time.sleep(0.07)
 
 
+def _build_scan_line(
+    width: int,
+    height: int,
+    frame: int,
+    speed: float = 1.5,
+) -> str:
+    """Build a horizontal scanning sweep (like a radar or spectrum analyzer).
+
+    A bright vertical bar sweeps left-to-right with a fading trail behind it.
+
+    Args:
+        width: Character width of the scan area.
+        height: Character height of the scan area.
+        frame: Current animation frame.
+        speed: How fast the scan bar moves.
+
+    Returns:
+        Multi-line string of the rendered scan.
+    """
+    chars = " ░▒▓█"
+    # scan position wraps around
+    pos = int(frame * speed) % width
+    grid = [[" "] * width for _ in range(height)]
+
+    for row in range(height):
+        # bright bar at scan position
+        grid[row][pos] = chars[4]
+        # trailing fade
+        for offset in range(1, 6):
+            trail = pos - offset
+            if 0 <= trail < width:
+                fade = max(0, 4 - offset)
+                grid[row][trail] = chars[fade]
+        # random noise blips for realism
+        for x in range(width):
+            if grid[row][x] == " " and random.random() < 0.03:
+                grid[row][x] = chars[random.randint(1, 2)]
+
+    return "\n".join("".join(row) for row in grid)
+
+
 def show_dual_signal_graph(
     console: Console,
     left_label: str = "SIGINT",
     right_label: str = "AUDIO INTERCEPT",
+    scan_speed: float = 1.5,
+    wave_freq: float = 0.35,
+    wave_speed: float = 2.5,
 ) -> None:
-    """Render two sinusoidal waves side by side.
+    """Render a scanning graph (left) and sine wave (right) side by side.
 
-    Both waves animate independently with different frequencies,
-    displayed in adjacent panels using Rich Columns.
+    The left panel shows a horizontal scanning sweep; the right panel
+    shows a sinusoidal audio waveform. Both animate independently.
 
     Args:
         console: Rich console instance.
-        left_label: Label for the left signal graph.
-        right_label: Label for the right signal graph.
+        left_label: Label for the left scanning panel.
+        right_label: Label for the right sine wave panel.
+        scan_speed: Speed of the scanning bar.
+        wave_freq: Frequency of the sine wave.
+        wave_speed: Phase speed of the sine wave animation.
     """
     # each panel gets roughly half the terminal width
     panel_width = min((console.width - 6) // 2, 45)
@@ -271,31 +318,30 @@ def show_dual_signal_graph(
 
     with Live(console=console, refresh_per_second=15) as live:
         for frame in range(frames):
-            # left wave — slower, wider frequency
-            left_wave = _build_sine_wave(
+            # left — horizontal scanning sweep
+            scan = _build_scan_line(
                 panel_width - 4,
                 height,
                 frame,
-                frequency=0.2,
-                phase_speed=1.5,
+                speed=scan_speed,
             )
             left_panel = Panel(
-                Text(left_wave, style="green"),
+                Text(scan, style="green"),
                 title=f"[bold cyan]◉ {left_label}[/bold cyan]",
                 border_style="cyan",
                 width=panel_width,
             )
 
-            # right wave — faster, tighter frequency
-            right_wave = _build_sine_wave(
+            # right — sinusoidal audio waveform
+            wave = _build_sine_wave(
                 panel_width - 4,
                 height,
                 frame,
-                frequency=0.35,
-                phase_speed=2.5,
+                frequency=wave_freq,
+                phase_speed=wave_speed,
             )
             right_panel = Panel(
-                Text(right_wave, style="bright_green"),
+                Text(wave, style="bright_green"),
                 title=f"[bold cyan]◉ {right_label}[/bold cyan]",
                 border_style="cyan",
                 width=panel_width,
@@ -303,6 +349,32 @@ def show_dual_signal_graph(
 
             live.update(Columns([left_panel, right_panel], padding=(0, 1)))
             time.sleep(0.07)
+
+
+def show_failure_retry(
+    console: Console,
+    fail_message: str,
+    retry_message: str = "Retrying with alternate vector...",
+) -> None:
+    """Show a simulated failure followed by a retry success.
+
+    Prints a red error, pauses, then shows a green retry success.
+
+    Args:
+        console: Rich console instance.
+        fail_message: The error message to display.
+        retry_message: The retry message shown after the failure.
+    """
+    error = random.choice(ERROR_MESSAGES)
+    console.print(f"\n  [bold red]✗ FAILED:[/bold red] [red]{fail_message}[/red]")
+    console.print(f"    [dim red]{error}[/dim red]")
+    time.sleep(random.uniform(0.5, 1.0))
+
+    typing_effect(console, f"  >> {retry_message}", style="yellow")
+    time.sleep(random.uniform(0.3, 0.6))
+
+    console.print(f"  [bold green]✓ {fail_message} — succeeded on retry[/bold green]")
+    time.sleep(0.2)
 
 
 def show_hex_dump(console: Console, lines: int = 12) -> None:
@@ -491,7 +563,24 @@ def show_permission_prompt(console: Console) -> None:
     """
     console.print()
     skull = random.choice(ASCII_SKULLS)
-    console.print(Panel(skull, style="bold red", border_style="red"))
+    skull_lines = skull.rstrip("\n").split("\n")
+    skull_width = max(len(line) for line in skull_lines)
+
+    # how many copies fit side by side (with 2-char gap, minus panel border)
+    usable = console.width - 4  # panel border padding
+    copies = max(1, usable // (skull_width + 2))
+
+    # pad each skull line to uniform width and tile horizontally
+    tiled_lines = []
+    for row_idx in range(len(skull_lines)):
+        segments = []
+        for _ in range(copies):
+            line = skull_lines[row_idx] if row_idx < len(skull_lines) else ""
+            segments.append(line.ljust(skull_width))
+        tiled_lines.append("  ".join(segments))
+
+    tiled = "\n".join(tiled_lines)
+    console.print(Panel(tiled, style="bold red", border_style="red"))
 
     typing_effect(
         console,

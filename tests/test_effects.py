@@ -194,3 +194,36 @@ class TestShowEncryptionCrack:
     def test_runs_without_error(self, mock_sleep: MagicMock) -> None:
         console = Console(file=io.StringIO(), width=80)
         effects.show_encryption_crack(console, num_attempts=5)
+
+
+@patch("hacker_screen.effects.time.sleep", return_value=None)
+class TestShowFailureRetry:
+    """Tests for the failure/retry simulation."""
+
+    def test_runs_without_error(self, mock_sleep: MagicMock) -> None:
+        console = Console(file=io.StringIO(), width=80)
+        effects.show_failure_retry(console, "Test operation")
+
+    def test_output_contains_failed_and_success(
+        self,
+        mock_sleep: MagicMock,
+    ) -> None:
+        console = Console(file=io.StringIO(), width=80)
+        effects.show_failure_retry(console, "Test operation")
+        output = console.file.getvalue()
+        assert "FAILED" in output
+        assert "succeeded" in output
+
+
+class TestBuildScanLine:
+    """Tests for the horizontal scanning helper."""
+
+    def test_returns_multiline_string(self) -> None:
+        result = effects._build_scan_line(20, 5, 0)
+        lines = result.split("\n")
+        assert len(lines) == 5
+
+    def test_width_matches(self) -> None:
+        result = effects._build_scan_line(30, 4, 0)
+        for line in result.split("\n"):
+            assert len(line) == 30

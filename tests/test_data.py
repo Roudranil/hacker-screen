@@ -151,6 +151,31 @@ class TestAssetFileIntegrity:
             f"{filename} has {len(data)} items, expected >= {min_count}"
         )
 
+    @pytest.mark.parametrize(
+        "filename,expected_keys",
+        [
+            ("phase_messages.json", ["recon", "exploitation", "exfil_tasks"]),
+            ("signal_profiles.json", None),  # list, not dict
+        ],
+    )
+    def test_structured_assets(
+        self,
+        filename: str,
+        expected_keys: list | None,
+    ) -> None:
+        data = _load_json(filename)
+        if expected_keys is not None:
+            for key in expected_keys:
+                assert key in data, f"Missing key '{key}' in {filename}"
+                assert len(data[key]) >= 3
+        else:
+            # signal_profiles is a list of dicts
+            assert isinstance(data, list)
+            assert len(data) >= 3
+            for item in data:
+                assert "left_label" in item
+                assert "right_label" in item
+
 
 class TestDataPoolTypes:
     """Verify module-level constants have correct runtime types."""
