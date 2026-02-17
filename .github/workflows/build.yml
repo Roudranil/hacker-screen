@@ -1,0 +1,69 @@
+name: Build Binaries
+
+on:
+    push:
+        tags: ["v*"]
+    workflow_dispatch:
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      artifact_name: hacker-screen-linux
+                      binary_name: hacker-screen
+                    - os: windows-latest
+                      artifact_name: hacker-screen-windows
+                      binary_name: hacker-screen.exe
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v4
+              with:
+                  version: latest
+
+            - name: Set up Python
+              run: uv python install 3.11
+
+            - name: Install dependencies
+              run: uv sync
+
+            - name: Run tests
+              run: uv run pytest tests/ -v
+
+            - name: Run linter
+              run: uv run ruff check src/ tests/
+
+            - name: Build binary
+              run: uv run pyinstaller --onefile --name ${{ matrix.binary_name }} src/hacker_screen/__main__.py
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.artifact_name }}
+                  path: dist/${{ matrix.binary_name }}
+
+    release:
+        needs: build
+        runs-on: ubuntu-latest
+        if: startsWith(github.ref, 'refs/tags/')
+
+        permissions:
+            contents: write
+
+        steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+
+            - name: Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      hacker-screen-linux/hacker-screen
+                      hacker-screen-windows/hacker-screen.exe
+                  generate_release_notes: true
