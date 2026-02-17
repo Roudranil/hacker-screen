@@ -1,0 +1,58 @@
+[
+    {
+        "left_label": "SIGINT-A",
+        "right_label": "AUDIO INTERCEPT",
+        "scan_speed": 1.5,
+        "wave_freq": 0.35,
+        "wave_speed": 2.5
+    },
+    {
+        "left_label": "SATCOM-7",
+        "right_label": "GSM DECODE",
+        "scan_speed": 2.0,
+        "wave_freq": 0.25,
+        "wave_speed": 3.0
+    },
+    {
+        "left_label": "RF SCANNER",
+        "right_label": "VoIP TAP",
+        "scan_speed": 1.0,
+        "wave_freq": 0.4,
+        "wave_speed": 2.0
+    },
+    {
+        "left_label": "RADAR SWEEP",
+        "right_label": "SONAR ECHO",
+        "scan_speed": 1.8,
+        "wave_freq": 0.15,
+        "wave_speed": 1.5
+    },
+    {
+        "left_label": "ELINT",
+        "right_label": "COMINT",
+        "scan_speed": 2.5,
+        "wave_freq": 0.3,
+        "wave_speed": 2.8
+    },
+    {
+        "left_label": "SPECTRUM",
+        "right_label": "WAVEFORM CAPTURE",
+        "scan_speed": 1.2,
+        "wave_freq": 0.5,
+        "wave_speed": 3.5
+    },
+    {
+        "left_label": "TEMPEST",
+        "right_label": "EMF ANALYSIS",
+        "scan_speed": 3.0,
+        "wave_freq": 0.2,
+        "wave_speed": 2.2
+    },
+    {
+        "left_label": "MESH SCAN",
+        "right_label": "BLE INTERCEPT",
+        "scan_speed": 1.5,
+        "wave_freq": 0.45,
+        "wave_speed": 1.8
+    }
+]

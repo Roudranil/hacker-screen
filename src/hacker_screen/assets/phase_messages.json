@@ -1,0 +1,98 @@
+{
+    "recon": [
+        ">> Scanning network topology...",
+        ">> Probing subnet boundaries...",
+        ">> Mapping attack surface...",
+        ">> Fingerprinting remote hosts...",
+        ">> Running passive DNS enumeration...",
+        ">> Initiating ARP sweep on local segment...",
+        ">> Querying WHOIS records...",
+        ">> Discovering hidden services..."
+    ],
+    "exploitation": [
+        ">> Injecting SQL payload...",
+        ">> Escalating privileges via CVE-2024-1086...",
+        ">> Bypassing ASLR with ROP chain...",
+        ">> Deploying reverse shell listener...",
+        ">> Exploiting buffer overflow in sshd...",
+        ">> Triggering use-after-free in kernel module...",
+        ">> Sending crafted ICMP packets...",
+        ">> Hijacking session tokens..."
+    ],
+    "exfil_tasks": [
+        "Downloading database dump...",
+        "Extracting credentials store...",
+        "Compressing archive...",
+        "Mirroring shadow file...",
+        "Exfiltrating SSH keys...",
+        "Copying browser cookies...",
+        "Dumping Kerberos tickets...",
+        "Siphoning config backups...",
+        "Extracting certificate chain...",
+        "Pulling container secrets..."
+    ],
+    "surveillance": [
+        ">> Intercepting communications...",
+        ">> Tapping encrypted channels...",
+        ">> Decoding satellite uplink...",
+        ">> Monitoring VoIP streams...",
+        ">> Capturing radio telemetry...",
+        ">> Sniffing wireless handshakes...",
+        ">> Demodulating GSM traffic...",
+        ">> Injecting into TLS session..."
+    ],
+    "malware_cleanup": [
+        ">> All payloads deployed. Cleaning traces...",
+        ">> Persistence established. Erasing footprints...",
+        ">> Rootkit active. Sanitizing logs...",
+        ">> Backdoor installed. Removing evidence...",
+        ">> Implant seeded. Shredding audit trail...",
+        ">> C2 channel open. Covering tracks..."
+    ],
+    "firewall_bypass": [
+        ">> Firewall detected — attempting bypass...",
+        ">> IDS/IPS blocking traffic — evading...",
+        ">> WAF rules intercepting — obfuscating payload...",
+        ">> Deep packet inspection active — tunneling...",
+        ">> Rate limiter triggered — throttling requests..."
+    ],
+    "social_engineering": [
+        ">> Crafting spear-phishing email...",
+        ">> Generating fake login portal...",
+        ">> Spoofing caller ID for vishing...",
+        ">> Cloning badge credentials...",
+        ">> Deploying USB drop attack..."
+    ],
+    "cleanup": [
+        ">> Wiping system logs...",
+        ">> Removing forensic artifacts...",
+        ">> Clearing bash history...",
+        ">> Timestomping modified files...",
+        ">> Overwriting swap partition...",
+        ">> Purging journald entries..."
+    ],
+    "firewall_steps": [
+        "Probing firewall rules on port %PORT%...",
+        "Testing egress filtering...",
+        "Fragmenting packets to evade DPI...",
+        "Establishing covert DNS tunnel...",
+        "Routing through Tor exit node...",
+        "Setting up ICMP covert channel..."
+    ],
+    "social_steps": [
+        "Harvesting employee emails from LinkedIn...",
+        "Generating credential phishing page...",
+        "Sending targeted phishing payload...",
+        "Intercepting MFA token via SS7...",
+        "Replaying captured TOTP seed...",
+        "Establishing trust via pretexting..."
+    ],
+    "cleanup_steps": [
+        "Scrubbing /var/log/auth.log...",
+        "Zeroing wtmp/utmp records...",
+        "Modifying ctime/mtime on binaries...",
+        "Removing cron persistence entries...",
+        "Clearing .bash_history across users...",
+        "Purging auditd backlog..."
+    ]
+}
