@@ -13,6 +13,14 @@ def test_binary(binary_path: str, timeout: int = 120) -> None:
         print(f"Error: Binary not found at {path}")
         sys.exit(1)
 
+    # Windows CI console fix: force UTF-8 output so we don't crash when printing binary output
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+            sys.stderr.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
+
     # Windows requires .exe extension check if not provided
     if sys.platform == "win32" and path.suffix != ".exe":
         path = path.with_suffix(".exe")
