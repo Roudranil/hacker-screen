@@ -45,6 +45,7 @@ jobs:
                 uv run pyinstaller --onefile
                 --name ${{ matrix.binary_name }}
                 --add-data "src/hacker_screen/assets:hacker_screen/assets"
+                --collect-submodules rich._unicode_data
                 src/hacker_screen/__main__.py
 
             - name: Build binary (Windows)
@@ -53,7 +54,12 @@ jobs:
                 uv run pyinstaller --onefile
                 --name ${{ matrix.binary_name }}
                 --add-data "src\hacker_screen\assets;hacker_screen\assets"
+                --collect-submodules rich._unicode_data
                 src\hacker_screen\__main__.py
+
+            - name: Run integration test
+              run: |
+                python scripts/test_binary.py dist/${{ matrix.binary_name }}
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
