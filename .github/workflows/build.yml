@@ -39,8 +39,21 @@ jobs:
             - name: Run linter
               run: uv run ruff check src/ tests/
 
-            - name: Build binary
-              run: uv run pyinstaller --onefile --name ${{ matrix.binary_name }} src/hacker_screen/__main__.py
+            - name: Build binary (Linux/macOS)
+              if: runner.os != 'Windows'
+              run: >
+                uv run pyinstaller --onefile
+                --name ${{ matrix.binary_name }}
+                --add-data "src/hacker_screen/assets:hacker_screen/assets"
+                src/hacker_screen/__main__.py
+
+            - name: Build binary (Windows)
+              if: runner.os == 'Windows'
+              run: >
+                uv run pyinstaller --onefile
+                --name ${{ matrix.binary_name }}
+                --add-data "src\hacker_screen\assets;hacker_screen\assets"
+                src\hacker_screen\__main__.py
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
