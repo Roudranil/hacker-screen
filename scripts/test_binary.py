@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 import time
@@ -21,8 +22,19 @@ def test_binary(binary_path: str, timeout: int = 15) -> None:
         # Run the binary
         # We expect it to run indefinitely (matrix rain), so a TimeoutExpired is a success.
         # A quick return (crash) is a failure.
+
+        # Force UTF-8 encoding for captured output (especially on Windows CI)
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["PYTHONUTF8"] = "1"
+
         proc = subprocess.run(
-            [str(path)], timeout=timeout, capture_output=True, text=True
+            [str(path)],
+            timeout=timeout,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",  # Explicitly read output as utf-8
+            env=env,
         )
 
         # If it returns naturally, that's unexpected for this app (unless it crashed)
