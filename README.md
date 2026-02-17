@@ -52,21 +52,23 @@ hacker-screen.exe
 # install dev dependencies
 uv sync
 
-# build (linux)
-uv run pyinstaller --onefile --name hacker-screen src/hacker_screen/__main__.py
+# build (linux/macOS)
+uv run pyinstaller --onefile --name hacker-screen \
+  --add-data "src/hacker_screen/assets:hacker_screen/assets" \
+  src/hacker_screen/__main__.py
 
 # binary appears in dist/
 ./dist/hacker-screen
 ```
 
 > **Note:** PyInstaller builds platform-specific binaries. Build on Linux for
-> Linux, on Windows for Windows. Use the included GitHub Actions workflow for
-> cross-platform CI builds.
+> Linux, on Windows for Windows. See **[docs/BUILDING.md](docs/BUILDING.md)**
+> for full platform-specific instructions, CI setup, and troubleshooting.
 
 ## 🧪 Running Tests
 
 ```bash
-# run all 86 tests
+# run all 114 tests
 uv run pytest tests/ -v
 
 # with coverage
@@ -84,19 +86,24 @@ hacker-screen/
 ├── README.md
 ├── docs/
 │   ├── ARCHITECTURE.md         # module design & data flow
+│   ├── BUILDING.md             # build, test, and packaging guide
 │   └── EFFECTS_CATALOG.md      # visual catalog of all effects
 ├── src/hacker_screen/
 │   ├── __init__.py             # package metadata
 │   ├── __main__.py             # entry point
-│   ├── data.py                 # 14 random text pools + helpers
+│   ├── data.py                 # loads data pools from assets/
 │   ├── effects.py              # 17 terminal effect functions
 │   ├── sequences.py            # 9 hacking phases
-│   └── matrix_rain.py          # curses-based matrix rain
+│   ├── matrix_rain.py          # curses-based matrix rain
+│   └── assets/                 # external data files (JSON + TXT)
+│       ├── ips.json, files.json, ...  # 13 JSON data pools
+│       ├── banner.txt          # welcome banner ASCII art
+│       └── skulls/             # skull ASCII art files
 └── tests/
     ├── conftest.py             # shared fixtures
-    ├── test_data.py            # 33 data pool tests
+    ├── test_data.py            # 62 data pool + loader tests
     ├── test_effects.py         # 21 effect tests
-    ├── test_sequences.py       # 15 sequence tests
+    ├── test_sequences.py       # 14 sequence tests
     └── test_matrix_rain.py     # 13 rain tests
 ```
 
